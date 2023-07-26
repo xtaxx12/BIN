@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verificador de BIN</title>
+    <style>
+       
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        label {
+            display: flex center;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            padding: 5px;
+        }
+
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .return{
+           top: 10%;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Verificador de BIN</h1>
+
+    <form id="binForm">
+        <label for="binInput">Ingresa el BIN:</label>
+        <input type="text" id="binInput" maxlength="6" required>
+        <button type="submit">Verificar</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        function getBinData(event) {
+            event.preventDefault();
+
+            var binInput = document.getElementById("binInput");
+            var bin = binInput.value.trim();
+
+            // Validar que se ingresó un BIN válido
+            if (bin.length !== 6 || !/^\d+$/.test(bin)) {
+                alert("Por favor, ingresa un BIN válido de 6 dígitos numéricos.");
+                return;
+            }
+
+            // Realizar una solicitud HTTP GET a "https://lookup.binlist.net/" para obtener los datos del BIN
+            axios.get(`https://lookup.binlist.net/${bin}`)
+                .then(function (response) {
+                    var binData = response.data;
+
+                    // Mostrar los datos del BIN en el resultado
+                    var resultDiv = document.getElementById("result");
+                    resultDiv.innerHTML = `
+                        <p><strong>Brand:</strong> ${binData.brand}</p>
+                        <p><strong>Card Type:</strong> ${binData.type}</p>
+                        <p><strong>Country:</strong> ${binData.country.name}</p>
+                        <p><strong>Bank:</strong> ${binData.bank.name}</p>
+                        <p><strong>Level:</strong> ${binData.sub_brand}</p>
+                        <p><strong>Currency:</strong> ${binData.country.currency}</p>
+                    `;
+                })
+                .catch(function (error) {
+                    console.error('Ocurrió un error al obtener los datos del BIN:', error.message);
+                });
+        }
+        
+
+        var binForm = document.getElementById("binForm");
+        binForm.addEventListener("submit", getBinData);
+    </script>
+  
+    <br>
+    <button onclick="window.location.href='index.html'" class="return">Regresar</button>
+    
+</body>
+</html>

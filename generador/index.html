@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generador</title>
+    <link rel="stylesheet" href="estilo.css">
+</head>
+
+<body>
+
+    <h1>Generador de Tarjetas de Crédito</h1>
+
+    <form id="inputForm">
+        <label for="cardNumberInput">Ingresa los primeros 12 dígitos:</label>
+        <input type="text" id="cardNumberInput" maxlength="12" required>
+        <button class="animated-button" type="submit">Generar</button>
+    </form>
+    <br>
+    <table class="tabla">
+        <tr>
+            <th>Número de Tarjeta</th>
+            <th>Mes de Vencimiento</th>
+            <th>Año de Vencimiento</th>
+            <th>CVV</th>
+            <th></th>
+        </tr>
+        <tbody id="cardTable"></tbody>
+    </table>
+
+    <br>
+    <a href="prueba.html" class="bin-search">Bin search</a>
+
+    <script>
+        function luhnAlgorithm(cardNumber) {
+            var digits = cardNumber.split('').map(Number);
+            var sum = 0;
+            var alt = false;
+
+            for (var i = digits.length - 1; i >= 0; i--) {
+                var currDigit = digits[i];
+
+                if (alt) {
+                    currDigit *= 2;
+                    if (currDigit > 9) {
+                        currDigit -= 9;
+                    }
+                }
+
+                sum += currDigit;
+                alt = !alt;
+            }
+
+            return sum % 10 === 0;
+        }
+
+        function generateCreditCards(event) {
+            event.preventDefault();
+
+            var cardTable = document.getElementById("cardTable");
+            var cardNumberInput = document.getElementById("cardNumberInput");
+            var firstDigits = cardNumberInput.value.trim();
+
+            // Validar que se ingresaron los primeros 12 dígitos
+            if (firstDigits.length !== 12) {
+                alert("Por favor, ingresa un bin correcto.");
+                return;
+            }
+
+            // Borrar las tarjetas existentes
+            while (cardTable.firstChild) {
+                cardTable.removeChild(cardTable.firstChild);
+            }
+
+            for (var i = 0; i < 10; i++) {
+                // Generar los primeros 12 dígitos del número de tarjeta de crédito
+                var cardNumber = firstDigits;
+
+                // Generar los últimos 4 dígitos de la tarjeta de crédito
+                var lastFourDigits = Math.floor(Math.random() * 9000 + 1000);
+                cardNumber += lastFourDigits;
+
+                // Verificar que el número de tarjeta tenga exactamente 16 dígitos
+                if (cardNumber.length !== 16) {
+                    i--;
+                    continue;
+                }
+
+                // Calcular el dígito de verificación utilizando el algoritmo de Luhn
+                var isValid = false;
+                while (!isValid) {
+                    isValid = luhnAlgorithm(cardNumber);
+                    if (!isValid) {
+                        // Si el número no es válido, generar nuevos últimos 4 dígitos
+                        lastFourDigits = Math.floor(Math.random() * 9000 + 1000);
+                        cardNumber = firstDigits + lastFourDigits;
+                    }
+                }
+
+                // Generar el número de tarjeta de crédito completo
+
+                // Generar el mes y año de vencimiento
+                var expirationMonth = String(Math.floor(Math.random() * 12) + 1);
+                if (expirationMonth.length === 1) {
+                    expirationMonth = "0" + expirationMonth;
+                }
+                var expirationYear = Math.floor(Math.random() * 11) + 2023;
+
+                // Generar el código de seguridad (CVV)
+                var cvv = Math.floor(Math.random() * 900) + 100;
+
+                // Crear una nueva fila en la tabla para mostrar la tarjeta de crédito generada
+                var row = document.createElement("tr");
+                var cardNumberCell = document.createElement("td");
+                var expirationMonthCell = document.createElement("td");
+                var expirationYearCell = document.createElement("td");
+                var cvvCell = document.createElement("td");
+                var copyButtonCell = document.createElement("td");
+                var copyButton = document.createElement("button");
+
+                cardNumberCell.textContent = cardNumber;
+                expirationMonthCell.textContent = expirationMonth;
+                expirationYearCell.textContent = expirationYear;
+                cvvCell.textContent = cvv;
+                copyButton.textContent = "Copiar";
+
+                copyButton.addEventListener("click", function () {
+                    copyCardDetails(this.parentElement.parentElement);
+                });
+
+                row.appendChild(cardNumberCell);
+                row.appendChild(expirationMonthCell);
+                row.appendChild(expirationYearCell);
+                row.appendChild(cvvCell);
+                copyButtonCell.appendChild(copyButton);
+                row.appendChild(copyButtonCell);
+
+                cardTable.appendChild(row);
+            }
+        }
+
+        function copyCardDetails(row) {
+            var cardNumberCell = row.cells[0];
+            var expirationMonthCell = row.cells[1];
+            var expirationYearCell = row.cells[2];
+            var cvvCell = row.cells[3];
+
+            var cardNumber = cardNumberCell.textContent;
+            var expiration = expirationMonthCell.textContent + "|" + expirationYearCell.textContent;
+            var cvv = cvvCell.textContent;
+
+            var formattedDetails = cardNumber + "|" + expiration + "|" + cvv;
+
+            copyToClipboard(formattedDetails);
+        }
+
+        function copyToClipboard(text) {
+            var textarea = document.createElement("textarea");
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+            alert("El valor ha sido copiado al portapapeles:\n\n" + text);
+        }
+
+        var form = document.getElementById("inputForm");
+        form.addEventListener("submit", generateCreditCards);
+    </script>
+</body>
+
+</html>
